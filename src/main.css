@@ -33,9 +33,9 @@ html, body {
 
 .panel-title {
   margin: 0 0 1rem;
-  font-size: 1rem;
+  font-size: 1.75rem;
   font-weight: 700;
-  letter-spacing: 0.18em;
+  letter-spacing: 0.22em;
   text-transform: uppercase;
   color: #f3f3f3;
 }
@@ -206,8 +206,9 @@ html, body {
   cursor: default;
 }
 
-/* 预设：底部保存按钮 */
+/* 预设：底部保存/导出/导入按钮（已隐藏） */
 .control-group-save {
+  display: none;
   margin-top: 1.5rem;
   padding-top: 1rem;
   border-top: 1px solid #333;
