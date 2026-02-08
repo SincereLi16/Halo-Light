@@ -1,5 +1,5 @@
 import type { HaloLightParams } from "./types";
-import { DEFAULT_PARAMS } from "./params";
+import { BUILTIN_PRESETS_PARAMS } from "./builtinPresets";
 
 const STORAGE_KEY = "halo-light-presets";
 
@@ -18,19 +18,15 @@ function genId(): string {
 
 /**
  * 内置预设（固定显示在左上角，不可删除）
- * 如需替换为你调好的预设：导出当前预设，将 JSON 中的 params 对象复制到下方
  */
 export function getBuiltinPresets(): Preset[] {
-  const builtinParams = DEFAULT_PARAMS; // 可替换为你的预设 params
-  return [
-    {
-      id: "builtin_default",
-      params: JSON.parse(JSON.stringify(builtinParams)),
-      thumbnail: "",
-      createdAt: 0,
-      isBuiltin: true,
-    },
-  ];
+  return BUILTIN_PRESETS_PARAMS.map((params, i) => ({
+    id: `builtin_${i}`,
+    params: JSON.parse(JSON.stringify(params)),
+    thumbnail: "",
+    createdAt: 0,
+    isBuiltin: true,
+  }));
 }
 
 export function getPresets(): Preset[] {
