@@ -2,7 +2,7 @@ import { DEFAULT_PARAMS, clampParams } from "./params";
 import type { HaloLightParams } from "./types";
 import { render } from "./render";
 import { createPanel } from "./ui";
-import { getPresets, addPreset, removePreset, exportPresetsToJson, importPresetsFromJson } from "./presets";
+import { getPresets, getBuiltinPresets, addPreset, removePreset, exportPresetsToJson, importPresetsFromJson } from "./presets";
 
 const THUMB_SIZE = 80;
 
@@ -33,17 +33,31 @@ function main(): void {
     return off.toDataURL("image/jpeg", 0.88);
   }
 
+  const builtinThumbnailCache = new Map<string, string>();
+
   function refreshPresetThumbnails(): void {
     presetContainer.innerHTML = "";
-    const presets = getPresets();
-    for (const preset of presets) {
+    const builtins = getBuiltinPresets();
+    const userPresets = getPresets();
+    const allPresets = [...builtins, ...userPresets];
+    for (const preset of allPresets) {
       const wrap = document.createElement("div");
       wrap.className = "preset-thumb-wrap";
+      let thumbSrc = preset.thumbnail;
+      if (preset.isBuiltin && !thumbSrc) {
+        const cached = builtinThumbnailCache.get(preset.id);
+        if (cached) {
+          thumbSrc = cached;
+        } else {
+          thumbSrc = generateThumbnail(preset.params);
+          builtinThumbnailCache.set(preset.id, thumbSrc);
+        }
+      }
       const img = document.createElement("img");
       img.className = "preset-thumb";
-      img.src = preset.thumbnail;
+      img.src = thumbSrc || "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7";
       img.alt = "";
-      img.title = "点击应用";
+      img.title = preset.isBuiltin ? "内置预设（点击应用）" : "点击应用";
       img.addEventListener("click", (e) => {
         if ((e.target as HTMLElement).closest(".preset-thumb-delete")) return;
         const newP = clampParams(JSON.parse(JSON.stringify(preset.params)));
@@ -54,18 +68,20 @@ function main(): void {
         onParamsChange(params);
         setupPanel();
       });
-      const del = document.createElement("button");
-      del.className = "preset-thumb-delete";
-      del.type = "button";
-      del.title = "删除预设";
-      del.innerHTML = "×";
-      del.addEventListener("click", (e) => {
-        e.stopPropagation();
-        removePreset(preset.id);
-        refreshPresetThumbnails();
-      });
       wrap.appendChild(img);
-      wrap.appendChild(del);
+      if (!preset.isBuiltin) {
+        const del = document.createElement("button");
+        del.className = "preset-thumb-delete";
+        del.type = "button";
+        del.title = "删除预设";
+        del.innerHTML = "×";
+        del.addEventListener("click", (e) => {
+          e.stopPropagation();
+          removePreset(preset.id);
+          refreshPresetThumbnails();
+        });
+        wrap.appendChild(del);
+      }
       presetContainer.appendChild(wrap);
     }
   }

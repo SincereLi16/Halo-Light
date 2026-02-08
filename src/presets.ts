@@ -1,4 +1,5 @@
 import type { HaloLightParams } from "./types";
+import { DEFAULT_PARAMS } from "./params";
 
 const STORAGE_KEY = "halo-light-presets";
 
@@ -7,10 +8,29 @@ export interface Preset {
   params: HaloLightParams;
   thumbnail: string;
   createdAt: number;
+  /** 内置预设，不可删除 */
+  isBuiltin?: boolean;
 }
 
 function genId(): string {
   return "p_" + Date.now().toString(36) + "_" + Math.random().toString(36).slice(2, 8);
+}
+
+/**
+ * 内置预设（固定显示在左上角，不可删除）
+ * 如需替换为你调好的预设：导出当前预设，将 JSON 中的 params 对象复制到下方
+ */
+export function getBuiltinPresets(): Preset[] {
+  const builtinParams = DEFAULT_PARAMS; // 可替换为你的预设 params
+  return [
+    {
+      id: "builtin_default",
+      params: JSON.parse(JSON.stringify(builtinParams)),
+      thumbnail: "",
+      createdAt: 0,
+      isBuiltin: true,
+    },
+  ];
 }
 
 export function getPresets(): Preset[] {
@@ -38,6 +58,7 @@ export function addPreset(params: HaloLightParams, thumbnail: string): Preset {
 }
 
 export function removePreset(id: string): void {
+  if (id.startsWith("builtin_")) return;
   const list = getPresets().filter((p) => p.id !== id);
   localStorage.setItem(STORAGE_KEY, JSON.stringify(list));
 }
